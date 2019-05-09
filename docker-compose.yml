@@ -1,0 +1,61 @@
+version: '2'
+networks:
+  ankins:
+    driver: bridge
+
+services:
+  jenkins:
+    image: jenkins
+    restart: always
+    container_name: jenkins
+    privileged: true
+    networks:
+      - jenkins
+    depends_on:
+      - anchore
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - "/home/docker/arch/jenkins/files:/var/jenkins_home:rw"
+      - "/var/run/docker.sock:/var/run/docker.sock" 
+
+  anchore:
+    image: docker.io/anchore/anchore-engine:latest
+    privileged: true
+    restart: always
+    container_name: anchore
+    depends_on:
+      - anchore-db
+    networks:
+      - jenkins
+    ports:
+      - "8228:8228"
+      - "8338:8338"
+    volumes:
+      - /home/docker/arch/anchore/config:/config/:z
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 100m
+    environment:
+      - ANCHORE_HOST_ID=dockerhostid-anchore
+      - ANCHORE_ENDPOINT_HOSTNAME=anchore
+
+  anchore-db:
+    image: "postgres:9"
+    container_name: anchore-db
+    restart: always
+    volumes:
+      - /home/docker/arch/anchore/db:/var/lib/postgresql/data/pgdata/:z
+    networks:
+      - jenkins
+    environment:
+      - POSTGRES_PASSWORD=changeme
+      - PGDATA=/var/lib/postgresql/data/pgdata/
+    logging:
+     driver: "json-file"
+     options:
+       max-size: 100m
+    ports:
+       - "2345:5432"
