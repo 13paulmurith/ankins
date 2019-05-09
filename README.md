@@ -7,7 +7,7 @@ Anchore Engine &amp; Jenkins ready to run with docker-compose
 
 > docker-compose up -d
 
-> Access to the web ui : http://localhost:8080
+> Access to Jenkins Web UI : http://localhost:8080
 
 ## Debug
 
